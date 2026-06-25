@@ -1,0 +1,22 @@
+-userModel 
+  --> -_id
+      -username
+      -email
+      -password
+      -verified
+       -createdAt
+       -updatedAt
+
+-chatModel 
+  --> -_id
+      -user
+      -title
+      -createdAt
+      -updatedAt
+
+-messageModel
+  --> -_id
+      -chat
+      -content 
+      -createdAt
+      -updatedAt
