@@ -1,0 +1,177 @@
+import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+
+const markdownComponents = {
+  p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
+  ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 mb-3">{children}</ul>,
+  ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 mb-3">{children}</ol>,
+  code: ({ inline, children, ...props }) =>
+    inline ? (
+      <code className="rounded bg-[var(--bg-hover)] px-1 py-0.5 text-sm font-sans" {...props}>
+        {children}
+      </code>
+    ) : (
+      <pre className="overflow-x-auto rounded-lg bg-[var(--bg-hover)] p-3 my-2 font-sans text-sm">
+        <code {...props}>{children}</code>
+      </pre>
+    ),
+  a: ({ href, children }) => (
+    <a href={href} className="text-[var(--accent)] underline" target="_blank" rel="noreferrer">
+      {children}
+    </a>
+  ),
+};
+
+const IconButton = ({ icon, onClick, label }) => (
+  <button
+    onClick={onClick}
+    aria-label={label}
+    className="p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
+  >
+    {icon}
+  </button>
+);
+
+// message: { role: "user" | "assistant", content: string, citations?: [{ title, url }] }
+const MessageBubble = ({ message }) => {
+  const [copied, setCopied] = useState(false);
+  const isUser = message.role === "user";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  // User messages: small neutral pill, right aligned
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
+        <div className="max-w-[85%] md:max-w-[70%] px-4 py-2.5 rounded-3xl bg-[var(--bg-hover)] text-[var(--text-primary)] text-[15px] whitespace-pre-wrap break-words">
+          {message.content}
+        </div>
+      </div>
+    );
+  }
+
+  // Assistant messages: plain text on the page, no bubble, no avatar - Perplexity style
+  return (
+    <div className="w-full">
+      <div className="font-serif text-[17px] leading-relaxed text-[var(--text-primary)] max-w-none break-words">
+        <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
+      </div>
+
+      {/* Citation cards - render automatically once your logic attaches message.citations = [{ title, url }] */}
+      {message.citations?.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {message.citations.map((c, i) => (
+            <a
+              key={i}
+              href={c.url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent)] transition-colors"
+            >
+              <span className="w-4 h-4 rounded-full bg-[var(--accent)] text-black flex items-center justify-center text-[10px] font-bold shrink-0">
+                {i + 1}
+              </span>
+              <span className="truncate max-w-[160px] font-sans">{c.title}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Action row - Share / Download / Copy / Rewrite on the left, feedback on the right */}
+      <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center gap-1">
+          <IconButton
+            label="Share"
+            onClick={() => {}}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3M16 6l-4-4-4 4M12 2v13" />
+              </svg>
+            }
+          />
+          <IconButton
+            label="Export"
+            onClick={() => {}}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3M7 10l5 5 5-5M12 15V3" />
+              </svg>
+            }
+          />
+          <IconButton
+            label="Copy"
+            onClick={handleCopy}
+            icon={
+              copied ? (
+                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              )
+            }
+          />
+          <IconButton
+            label="Rewrite"
+            onClick={() => {}}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"
+                />
+              </svg>
+            }
+          />
+        </div>
+
+        <div className="flex items-center gap-1">
+          <IconButton
+            label="Good response"
+            onClick={() => {}}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z" />
+              </svg>
+            }
+          />
+          <IconButton
+            label="Bad response"
+            onClick={() => {}}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z" />
+              </svg>
+            }
+          />
+          <IconButton
+            label="More options"
+            onClick={() => {}}
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+                <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none" />
+              </svg>
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MessageBubble;

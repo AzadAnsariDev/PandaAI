@@ -50,9 +50,9 @@ export async function sendVerificationEmail(user) {
 
   await sendEmail({
     to: user.email,
-    subject: "Welcome to Perplexity",
+    subject: "Welcome to PandaAI",
     html: `
-            <h1>Welcome ${user.username} to Perplexity</h1>
+            <h1>Welcome ${user.username} to PandaAI</h1>
             <p>We are glad to have you on board</p>
             <p>Please Click the link below to verify your email</p>
             <a href="http://localhost:3000/api/auth/verifyEmail/${emailVerificationToken}">Verify Email</a>

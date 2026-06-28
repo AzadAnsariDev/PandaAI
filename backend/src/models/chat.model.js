@@ -5,7 +5,7 @@ const { Schema, model, Types } = mongoose;
 const chatSchema = new Schema(
   {
     user: { type: Types.ObjectId, ref: 'User', required: true },
-    title: { type: String, default: '' },
+    title: { type: String },
   },
   { timestamps: true }
 );
