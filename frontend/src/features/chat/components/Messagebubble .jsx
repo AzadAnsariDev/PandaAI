@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import ThinkingIndicator from "./ThinkingIndicator";
 
 const markdownComponents = {
   p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
@@ -37,6 +38,11 @@ const MessageBubble = ({ message }) => {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
 
+  const isThinking = message.role === "assistant" && message.content === "";
+
+  if (isThinking) {
+    return <ThinkingIndicator />;
+  }
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
     setCopied(true);
@@ -85,16 +91,7 @@ const MessageBubble = ({ message }) => {
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-1">
           <IconButton
-            label="Share"
-            onClick={() => {}}
-            icon={
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3M16 6l-4-4-4 4M12 2v13" />
-              </svg>
-            }
-          />
-          <IconButton
-            label="Export"
+            label="Download"
             onClick={() => {}}
             icon={
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,20 +117,6 @@ const MessageBubble = ({ message }) => {
                   />
                 </svg>
               )
-            }
-          />
-          <IconButton
-            label="Rewrite"
-            onClick={() => {}}
-            icon={
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.8"
-                  d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"
-                />
-              </svg>
             }
           />
         </div>

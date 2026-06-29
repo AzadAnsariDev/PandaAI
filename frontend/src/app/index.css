@@ -4,6 +4,26 @@ html,body,#root{
   width: 100%;
 }
 
-body{
+/* body{
   background: #212121;
+} */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+@theme {
+  --animate-glow: premium-glow 3s ease-in-out infinite;
+
+  @keyframes premium-glow {
+    0%, 100% {
+      box-shadow: 0 0 6px 0 rgba(var(--glow-rgb), 0.25);
+    }
+    50% {
+      box-shadow: 0 0 14px 2px rgba(var(--glow-rgb), 0.5);
+    }
+  }
 }

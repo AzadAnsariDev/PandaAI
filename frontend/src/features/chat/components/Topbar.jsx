@@ -7,7 +7,7 @@ const Topbar = ({ isDark, setIsDark, onMenuClick }) => {
   const [focus, setFocus] = useState(focusOptions[0]);
 
   return (
-    <header className="h-16 px-4 md:px-6 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-primary)] shrink-0">
+    <header className="h-16 px-4 md:px-6 flex items-center justify-between bg-[var(--bg-primary)] shrink-0">
       <div className="flex items-center gap-3">
         {/* Mobile sidebar toggle */}
         <button

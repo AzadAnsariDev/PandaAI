@@ -51,16 +51,15 @@ const Dashboard = () => {
   const currentChatId = useSelector((state) => state.chats.currentChatId);
 
   // Placeholder - swap this for your real user data, e.g.
-  // const user = useSelector((state) => state.auth.user);
-  const user = { name: "Azad Ansari" };
-
+  const user = useSelector((state) => state.auth.user);
+ 
   useEffect(() => {
     initializeServerConnection();
     handleGetChats();
   }, []);
 
   const onSubmit = async (data) => {
-    await handleSendMessage(data.message, currentChatId);
+    handleSendMessage(data.message, currentChatId);
     reset();
   };
 

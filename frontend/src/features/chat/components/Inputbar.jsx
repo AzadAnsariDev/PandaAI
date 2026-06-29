@@ -1,8 +1,11 @@
 import React from "react";
+import ModelSelector from "./ModelSelector";
+import { useState } from "react";
 
 const InputBar = ({ register, onSubmit }) => {
+   const [selectedModel, setSelectedModel] = useState("gemini");
   return (
-    <div className="border-t border-[var(--border)] bg-[var(--bg-primary)] px-4 py-4 shrink-0">
+    <div className=" bg-[var(--bg-primary)] px-4 py-4 shrink-0">
       <form
         onSubmit={onSubmit}
         className="max-w-3xl mx-auto flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 focus-within:border-[var(--accent)] transition-colors"
@@ -28,6 +31,9 @@ const InputBar = ({ register, onSubmit }) => {
           placeholder="Ask anything..."
           className="flex-1 bg-transparent outline-none text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
         />
+
+        <ModelSelector selectedModel={selectedModel} onSelect={setSelectedModel} />
+
 
         {/* Voice input - UI only, wire to your speech-to-text logic */}
         <button

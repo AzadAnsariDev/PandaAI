@@ -1,43 +1,8 @@
 import { generateChatTitle, generateResponse } from "../services/ai.service.js"
 import chatModel from '../models/chat.model.js'
 import messageModel from "../models/message.model.js"
-export async function sendMessage(req, res){
-    const { message, chatId } = req.body
+import { streamResponse } from "../services/ai.service.js"
 
-    let chatTitle, chat = null
-
-    if(!chatId){
-        chatTitle = await generateChatTitle(message)
-        chat = await chatModel.create({
-        user : req.user.id,
-        title : chatTitle 
-    })
-    }
-
-    const userMessage = await messageModel.create({
-        chat : chatId || chat._id,
-        content : message,
-        role : "user"
-    })
-
-    const allMessages = await messageModel.find({
-        chat: chatId || chat._id
-    })
-
-    const aiResult = await generateResponse(allMessages) 
-
-    const aiMessage = await messageModel.create({
-        chat : chatId || chat._id,
-        content : aiResult,
-        role : "ai"
-    })
-
-    res.json({
-        chat,
-        aiMessage
-    })
-
-}
 
 export async function getChats(req, res){
     const user = req.user
@@ -109,4 +74,31 @@ export async function deleteChat(req, res){
         message : "Chat deleted successfully"
     })
 
+}
+
+// chat.controller.js
+export async function sendMessageStream(req, res) {
+  const { message, chatId } = req.body;
+
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+  res.setHeader("Cache-Control", "no-cache");
+
+  let chatDoc = chatId ? await chatModel.findById(chatId) : null;
+
+  if (!chatDoc) {
+    const chatTitle = await generateChatTitle(message);
+    chatDoc = await chatModel.create({ user: req.user.id, title: chatTitle });
+    res.write(JSON.stringify({ type: "meta", chat: chatDoc }) + "\n");
+  }
+
+  const fullAnswer = await streamResponse(message, (token) => {
+    res.write(JSON.stringify({ type: "token", content: token }) + "\n");
+  });
+
+  await messageModel.create({ chat: chatDoc._id, role: "user", content: message });
+  await messageModel.create({ chat: chatDoc._id, role: "assistant", content: fullAnswer });
+
+  res.write(JSON.stringify({ type: "done" }) + "\n");
+  res.end();
 }

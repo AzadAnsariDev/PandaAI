@@ -26,6 +26,7 @@ const groqModel = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
   model: "llama-3.3-70b-versatile",
   temperature: 0,
+  streaming: true, 
 });
 
 const webSearchTool = tool(webSearch, {
@@ -110,4 +111,33 @@ Generate a title for a chat conversation based on the following first message:
   ]);
 
   return response.content.trim();
+}
+
+export async function streamResponse(messages, onToken) {
+  const langchainMessages = Array.isArray(messages)
+    ? messages
+        .filter(m => m.content && typeof m.content === "string" && m.content.trim() !== "")
+        .map(m =>
+          m.role === "user"
+            ? new HumanMessage(m.content)
+            : new AIMessage(m.content)
+        )
+    : [new HumanMessage(messages)]; // normal single message still works ✅
+
+  const events = agent.streamEvents(
+    { messages: langchainMessages },
+    { version: "v2" }
+  );
+
+  let fullAnswer = "";
+  for await (const event of events) {
+    if (event.event === "on_chat_model_stream") {
+      const content = event.data?.chunk?.content;
+      if (content) {
+        fullAnswer += content;
+        onToken(content);
+      }
+    }
+  }
+  return fullAnswer;
 }

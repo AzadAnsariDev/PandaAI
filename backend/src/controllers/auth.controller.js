@@ -2,6 +2,7 @@ import userModel from "../models/user.model.js"
 import { sendEmail, sendVerificationEmail } from "../services/email.service.js"
 import jwt from 'jsonwebtoken'
 import bcrypt from "bcryptjs"
+import redis from "../config/cache.js"
 
 export async function register(req, res){
     const {email, username, password} = req.body
@@ -178,4 +179,23 @@ export async function getMe(req, res){
         message : "User fetched successfully",
         user
     })
+}
+
+export async function logout(req, res) {
+      const token = req.cookies.token
+
+    if(!token){
+        return res.status(400).json({
+            message : "No Token Found, please register first"
+        })
+    }
+
+    res.clearCookie("token")
+
+    await redis.set(token, "blacklisted")
+
+    res.status(201).json({
+        message : "Logout Successfully"
+    })
+    
 }

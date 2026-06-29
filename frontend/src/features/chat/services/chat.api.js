@@ -5,21 +5,41 @@ const api = axios.create({
     withCredentials :true
 })
 
+// chat.api.js
+export async function sendMessageStream(message, chatId, onToken, onMeta) {
+  const response = await fetch("http://localhost:3000/api/chats/message/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // equivalent to axios's withCredentials: true
+    body: JSON.stringify({ message, chatId }),
+  });
 
+    if (response.status === 401) {
+    throw { status: 401, message: "Not authenticated" };
+  }
+  if (!response.ok) {
+    throw { status: response.status, message: "Request failed" };
+  }
 
-export async function sendMessage(message, chatId) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
 
-    const backendChatId =
-        chatId?.startsWith("temp-")
-            ? null
-            : chatId;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
 
-    const response = await api.post("/message", {
-        message,
-        chatId: backendChatId,
-    });
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop(); // keep incomplete last line for next chunk
 
-    return response.data;
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const parsed = JSON.parse(line);
+      if (parsed.type === "meta") onMeta(parsed.chat);
+      if (parsed.type === "token") onToken(parsed.content);
+    }
+  }
 }
 
 export async function getChats(){
