@@ -2,6 +2,9 @@ import { generateChatTitle, generateResponse } from "../services/ai.service.js"
 import chatModel from '../models/chat.model.js'
 import messageModel from "../models/message.model.js"
 import { streamResponse } from "../services/ai.service.js"
+import { model } from "mongoose"
+import ImageKit, { toFile } from '@imagekit/nodejs';
+import { imagekit } from "../services/imagekit.service.js"
 
 
 export async function getChats(req, res){
@@ -78,7 +81,19 @@ export async function deleteChat(req, res){
 
 // chat.controller.js
 export async function sendMessageStream(req, res) {
-  const { message, chatId } = req.body;
+  const { message, chatId, model } = req.body;
+
+  const imageFile = req.file
+
+  let imageUrl = null;
+
+  if (imageFile) {
+    const uploadedResult = await imagekit.files.upload({
+      file: await toFile(imageFile.buffer, imageFile.originalname),
+      fileName: `chat_${Date.now()}_${imageFile.originalname}`,
+    });
+    imageUrl = uploadedResult.url;
+  }
 
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.setHeader("Transfer-Encoding", "chunked");
@@ -92,12 +107,12 @@ export async function sendMessageStream(req, res) {
     res.write(JSON.stringify({ type: "meta", chat: chatDoc }) + "\n");
   }
 
-  const fullAnswer = await streamResponse(message, (token) => {
+  const fullAnswer = await streamResponse(message, model, imageUrl, (token) => {
     res.write(JSON.stringify({ type: "token", content: token }) + "\n");
   });
 
-  await messageModel.create({ chat: chatDoc._id, role: "user", content: message });
-  await messageModel.create({ chat: chatDoc._id, role: "assistant", content: fullAnswer });
+  await messageModel.create({ chat: chatDoc._id, role: "user", content: message, image: imageUrl });
+  await messageModel.create({ chat: chatDoc._id, role: "assistant", content: fullAnswer, model : model });
 
   res.write(JSON.stringify({ type: "done" }) + "\n");
   res.end();

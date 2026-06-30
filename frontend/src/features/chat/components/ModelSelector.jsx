@@ -20,6 +20,7 @@ const ModelSelector = ({ selectedModel, onSelect }) => {
   return (
     <div className="relative" ref={containerRef}>
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 px-2.5 py-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] transition-colors"
       >

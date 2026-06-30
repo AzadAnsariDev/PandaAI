@@ -3,7 +3,7 @@ import {
   deleteChat,
   getChats,
   getMessages,
-  sendMessageStream
+  sendMessageStream,
 } from "../services/chat.api";
 import { initializeServerConnection } from "../services/chat.socket";
 import {
@@ -12,46 +12,65 @@ import {
   addNewMessage,
   setChat,
   addMessage,
-  appendToLastMessage
-
+  appendToLastMessage,
+  clearDraft
 } from "../chatSlice";
 import { useNavigate } from "react-router";
 
 export function useChat() {
   const dispatch = useDispatch();
   const currentChatId = useSelector((state) => state.chats.currentChatId);
- const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  function createTypewriter(dispatch, getChatId, msPerTick = 20, charsPerTick = 2) {
-  let queue = "";
-  let running = false;
+  function createTypewriter(
+    dispatch,
+    getChatId,
+    msPerTick = 20,
+    charsPerTick = 2,
+  ) {
+    let queue = "";
+    let running = false;
 
-  function tick() {
-    if (queue.length === 0) {
-      running = false;
-      return;
+    function tick() {
+      if (queue.length === 0) {
+        running = false;
+        return;
+      }
+      const chunk = queue.slice(0, charsPerTick);
+      queue = queue.slice(charsPerTick);
+      dispatch(appendToLastMessage({ chatId: getChatId(), content: chunk }));
+      setTimeout(tick, msPerTick);
     }
-    const chunk = queue.slice(0, charsPerTick);
-    queue = queue.slice(charsPerTick);
-    dispatch(appendToLastMessage({ chatId: getChatId(), content: chunk }));
-    setTimeout(tick, msPerTick);
+
+    return {
+      push(text) {
+        queue += text;
+        if (!running) {
+          running = true;
+          tick();
+        }
+      },
+    };
   }
 
-  return {
-    push(text) {
-      queue += text;
-      if (!running) {
-        running = true;
-        tick();
-      }
-    },
-  };
-}
-
-async function handleSendMessage(message, chatId) {
+  async function handleSendMessage(message, chatId, model, imageFile) {
     let activeChat = chatId;
-    dispatch(addNewMessage({ chatId: activeChat, content: message, role: "user" }));
-    dispatch(addNewMessage({ chatId: activeChat, content: "", role: "assistant" }));
+    dispatch(
+      addNewMessage({ 
+        chatId: activeChat,
+        content: message,
+        role: "user" ,
+        image : imageFile ? URL.createObjectURL(imageFile) : null
+    }),
+    );
+    dispatch(
+      addNewMessage({
+        chatId: activeChat,
+        content: "",
+        role: "assistant",
+        model: model,
+      }),
+    );
 
     const typewriter = createTypewriter(dispatch, () => activeChat, 20, 2);
 
@@ -59,6 +78,8 @@ async function handleSendMessage(message, chatId) {
       await sendMessageStream(
         message,
         chatId,
+        model,
+        imageFile,
         (token) => typewriter.push(token),
         (chat) => {
           dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
@@ -107,20 +128,20 @@ async function handleSendMessage(message, chatId) {
   }
 
   async function handleDeleteChat(chatId) {
-  const response = await deleteChat(chatId);
-  await handleGetChats();
+    const response = await deleteChat(chatId);
+    await handleGetChats();
 
-  if (currentChatId === chatId) {
-    dispatch(setCurrentChatId(null));
-    dispatch(clearDraft());
-  }
+    if (currentChatId === chatId) {
+      dispatch(setCurrentChatId(null));
+      dispatch(clearDraft());
+    }
 
-  return response;
+    return response;
   }
 
   async function handleNewChat(chatId, title) {
     dispatch(setCurrentChatId(null));
-      dispatch(clearDraft());
+    dispatch(clearDraft());
   }
   return {
     initializeServerConnection,

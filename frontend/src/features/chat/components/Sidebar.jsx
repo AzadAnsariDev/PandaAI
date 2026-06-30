@@ -345,6 +345,7 @@ const AccountMenu = ({ user, onClose, onProfileClick, onHelpClick, onLogout }) =
       {/* Divider + logout */}
       <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "2px 4px 4px" }} />
       <button
+        type="button"
         onClick={() => { onLogout(); onClose(); }}
         style={{
           display: "flex", alignItems: "center", gap: 10,
@@ -388,8 +389,10 @@ const Sidebar = ({
   // ── Logout handler — plug your API call in here ──
   const handleLogoutBtn = async () => {
     try {
-      const response = await handleLogout()
-      console.log("Logging out…");
+      if(user){
+        const response = await handleLogout()
+        console.log("Logging out…")
+      }
     } catch (err) {
       console.error("Logout failed:", err);
     }

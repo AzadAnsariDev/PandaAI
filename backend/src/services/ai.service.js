@@ -62,17 +62,31 @@ const emailTool = tool(sendEmail, {
   })
 })
 
-const agent = createAgent({
-  model: groqModel,
-  tools: [webSearchTool, emailTool],
-  systemPrompt: `You are a helpful research assistant.
 
-Rules for tool use:
-- You may call webSearchTool AT MOST ONCE per user question.
-- After you get search results back, you MUST immediately write a final text answer using those results. Do not call webSearchTool again, even if the results seem incomplete.
-- Only call emailTool if the user explicitly asks you to send an email.
-- Never call the same tool twice in a row.`,
-});
+const modelMap = {
+  gemini: geminiModel,
+  llama: groqModel,
+  mistral: mistralModel,
+};
+
+async function normalizeImageUrl(imageUrl) {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith("data:")) return imageUrl;
+
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image from ${imageUrl}: ${response.status}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const contentType = response.headers.get("content-type") || "image/png";
+  const base64 = buffer.toString("base64");
+
+  return `data:${contentType};base64,${base64}`;
+}
+
+
 
 export async function generateResponse(allMessages) {
   const messages = allMessages.map((msg) =>
@@ -113,7 +127,24 @@ Generate a title for a chat conversation based on the following first message:
   return response.content.trim();
 }
 
-export async function streamResponse(messages, onToken) {
+export async function streamResponse(messages, model, imageUrl, onToken) {
+  const finalModel = imageUrl ? "gemini" : model; // 👈 yahi pressure/force hai
+  const selectedModel = modelMap[finalModel] || groqModel;
+
+  console.log(selectedModel)
+  const agent = createAgent({
+    model: selectedModel,
+    tools: [webSearchTool, emailTool],
+    systemPrompt: `You are a helpful research assistant.
+
+Rules for tool use:
+- You may call webSearchTool AT MOST ONCE per user question.
+- After you get search results back, you MUST immediately write a final text answer using those results. Do not call webSearchTool again, even if the results seem incomplete.
+- Only call emailTool if the user explicitly asks you to send an email.
+- Never call the same tool twice in a row.`,
+  });
+
+  // Step 1: purani history ko LangChain messages mein convert karo
   const langchainMessages = Array.isArray(messages)
     ? messages
         .filter(m => m.content && typeof m.content === "string" && m.content.trim() !== "")
@@ -122,8 +153,25 @@ export async function streamResponse(messages, onToken) {
             ? new HumanMessage(m.content)
             : new AIMessage(m.content)
         )
-    : [new HumanMessage(messages)]; // normal single message still works ✅
+    : [new HumanMessage(messages)]; // agar single string aaya toh
 
+  // Step 2: agar image hai, toh sabse last message (jo abhi ka user input hai)
+  // ko replace karo multi-modal content ke saath
+  if (imageUrl && langchainMessages.length > 0) {
+    const normalizedImageUrl = await normalizeImageUrl(imageUrl);
+    const lastIndex = langchainMessages.length - 1;
+    const lastMsg = langchainMessages[lastIndex];
+    const textContent = typeof lastMsg.content === "string" ? lastMsg.content : "";
+
+    langchainMessages[lastIndex] = new HumanMessage({
+      content: [
+        { type: "text", text: textContent },
+        { type: "image_url", image_url: { url: normalizedImageUrl } },
+      ],
+    });
+  }
+
+  // Step 3: poori history bhejo, sirf last message nahi
   const events = agent.streamEvents(
     { messages: langchainMessages },
     { version: "v2" }

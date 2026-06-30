@@ -41,6 +41,8 @@ const Dashboard = () => {
   );
   const [isDark, setIsDark] = useState(true);
 
+  const [selectedModel, setSelectedModel] = useState("gemini");
+
   // ---- Original app logic, untouched ----
   const { register, handleSubmit, reset } = useForm({
     defaultValues: { message: "" },
@@ -52,6 +54,10 @@ const Dashboard = () => {
 
   // Placeholder - swap this for your real user data, e.g.
   const user = useSelector((state) => state.auth.user);
+
+  //image Uplaod usestates
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
  
   useEffect(() => {
     initializeServerConnection();
@@ -59,8 +65,14 @@ const Dashboard = () => {
   }, []);
 
   const onSubmit = async (data) => {
-    handleSendMessage(data.message, currentChatId);
+    const messageText = data.message?.trim() || "";
+
+    if (!messageText && !imageFile) return;
+
+    handleSendMessage(messageText, currentChatId, selectedModel, imageFile);
     reset();
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const messages = chat[currentChatId]?.messages || [];
@@ -91,8 +103,15 @@ const Dashboard = () => {
 
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar isDark={isDark} setIsDark={setIsDark} onMenuClick={() => setSidebarOpen((v) => !v)} />
-        <ChatWindow messages={messages} />
-        <InputBar register={register} onSubmit={handleSubmit(onSubmit)} />
+        <ChatWindow messages={messages} model= {selectedModel} />
+        <InputBar
+         register={register}
+         onSubmit={handleSubmit(onSubmit)}
+         selectedModel = {selectedModel} 
+         setSelectedModel = {setSelectedModel}
+         setImageFile = {setImageFile}
+         setImagePreview = {setImagePreview}
+         imagePreview={imagePreview}/>
       </div>
     </div>
   );

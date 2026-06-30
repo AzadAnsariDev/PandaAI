@@ -36,11 +36,12 @@ const chatSlice = createSlice({
       state.currentChatId = chatId;
     },
     addNewMessage: (state, action) => {
-      const { chatId, content, role } = action.payload;
+      const { chatId, content, role, model, image} = action.payload;
+      const msg = { content, role, model, image}
       if (!chatId) {
-        state.draftMessages.push({ content, role });
+        state.draftMessages.push(msg);
       } else {
-        state.chat[chatId].messages.push({ content, role });
+        state.chat[chatId].messages.push(msg);
       }
     },
     addMessage: (state, action) => {

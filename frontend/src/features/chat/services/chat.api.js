@@ -6,12 +6,18 @@ const api = axios.create({
 })
 
 // chat.api.js
-export async function sendMessageStream(message, chatId, onToken, onMeta) {
+export async function sendMessageStream(message, chatId, model,imageFile, onToken, onMeta) {
+   
+  const formData = new FormData();
+  formData.append("message", message);
+  formData.append("chatId", chatId || "");
+  formData.append("model", model);
+  if (imageFile) formData.append("image", imageFile);
+
   const response = await fetch("http://localhost:3000/api/chats/message/stream", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include", // equivalent to axios's withCredentials: true
-    body: JSON.stringify({ message, chatId }),
+    body: formData
   });
 
     if (response.status === 401) {

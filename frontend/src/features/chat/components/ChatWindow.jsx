@@ -3,7 +3,7 @@ import MessageBubble from "../components/Messagebubble ";
 
 // Sample follow-up chips - replace with real suggestions from your logic
 
-const ChatWindow = ({ messages }) => {
+const ChatWindow = ({ messages , model}) => {
   const isEmpty = !messages || messages.length === 0;
 
   return (
@@ -21,7 +21,7 @@ const ChatWindow = ({ messages }) => {
         ) : (
           <div className="flex flex-col gap-6">
             {messages.map((msg, index) => (
-              <MessageBubble key={index} message={msg} />
+              <MessageBubble key={index} message={msg} model = {model} />
             ))}
 
           </div>
