@@ -1,6 +1,6 @@
 import {Router} from 'express'
 import {registerValidation} from '../validation/auth.validator.js'
-import { getMe, login, logout, register, resendEmail, verifyEmail } from '../controllers/auth.controller.js'
+import { getMe, login, logout, register, resendEmail, verifyEmail, resetPassword, forgotPassword, updateUserName } from '../controllers/auth.controller.js'
 import { authUser } from '../middlewares/auth.middleware.js'
 
 
@@ -38,5 +38,9 @@ authRouter.post("/login", login)
 authRouter.get("/getMe", authUser, getMe)
 
 authRouter.post("/logout", authUser, logout)
+authRouter.post("/forgot-password", forgotPassword)
+authRouter.post("/reset-password/:token", resetPassword)
+
+authRouter.patch("/update-username", authUser, updateUserName)
 
 export default authRouter

@@ -62,3 +62,4 @@ export async function  deleteChat(chatId) {
     const response = await api.delete(`/delete/${chatId}`)
     return response
 }
+

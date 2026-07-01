@@ -10,6 +10,10 @@ export const router = createBrowserRouter([
         element : <Login/ >
     },
     {
+        path:'/reset-password/:token',
+        element : <Login/ >
+    },
+    {
         path:'/register',
         element : <Register/ >
     },

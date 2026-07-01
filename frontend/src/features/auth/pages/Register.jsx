@@ -85,10 +85,38 @@ function Register() {
       {/* Header */}
       <header className="h-16 flex items-center justify-between px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center font-bold text-black">
-            P
-          </div>
-          <span className="font-semibold text-[15px]">PandaAI</span>
+          <svg viewBox="0 0 100 100" className="w-14 h-14 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sigTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#00C896" />
+      <stop offset="100%" stopColor="#002d22" />
+    </linearGradient>
+  </defs>
+  
+  {/* <!-- Quad-Symmetrical Matrix Blades -->
+  <!-- Top Blade --> */}
+  <path d="M50,15 L62,35 L50,42 L38,35 Z" fill="url(#sigTeal)" />
+  
+  {/* <!-- Right Blade --> */}
+  <path d="M85,50 L65,62 L58,50 L65,38 Z" fill="url(#sigTeal)" opacity="0.9" />
+  
+  {/* <!-- Bottom Blade --> */}
+  <path d="M50,85 L38,65 L50,58 L62,65 Z" fill="#00C896" />
+  
+  {/* <!-- Left Blade --> */}
+  <path d="M15,50 L35,38 L42,50 L35,62 Z" fill="url(#sigTeal)" opacity="0.7" />
+
+  {/* <!-- Ultra Sharp Core Alignment Rings --> */}
+  <circle cx="50" cy="50" r="16" stroke="#00C896" strokeWidth="1.5" strokeDasharray="4 8" opacity="0.5" />
+  
+  {/* Contrast Ring preventing drop on dark or light canvas */}
+  <circle cx="50" cy="50" r="5" fill="#111827" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+  {/* Pure Premium Neon Light Source */}
+  <circle cx="50" cy="50" r="3.5" fill="#00ffc4" />
+          </svg>
+          <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-[#475569] via-[#00C896] to-[#004a37]  dark:from-[#bab7b7] dark:via-[#00C896] dark:to-[#004a37]  bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(0,200,150,0.2)]">
+            LUMIS
+          </span>
         </div>
         <button
           onClick={() => setIsDark((v) => !v)}

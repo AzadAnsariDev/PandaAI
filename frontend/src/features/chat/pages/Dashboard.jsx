@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { initializeServerConnection } from "../services/chat.socket";
@@ -42,9 +42,11 @@ const Dashboard = () => {
   const [isDark, setIsDark] = useState(true);
 
   const [selectedModel, setSelectedModel] = useState("gemini");
+  const [isSending, setIsSending] = useState(false);
+  const isSendingRef = useRef(false);
 
   // ---- Original app logic, untouched ----
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, setValue } = useForm({
     defaultValues: { message: "" },
   });
   const { handleSendMessage, handleGetChats, handleOpenChat, handleDeleteChat } = useChat();
@@ -65,11 +67,22 @@ const Dashboard = () => {
   }, []);
 
   const onSubmit = async (data) => {
+    if (isSendingRef.current) return;
+
     const messageText = data.message?.trim() || "";
 
     if (!messageText && !imageFile) return;
 
-    handleSendMessage(messageText, currentChatId, selectedModel, imageFile);
+    isSendingRef.current = true;
+    setIsSending(true);
+
+    try {
+      await handleSendMessage(messageText, currentChatId, selectedModel, imageFile);
+    } finally {
+      isSendingRef.current = false;
+      setIsSending(false);
+    }
+
     reset();
     setImageFile(null);
     setImagePreview(null);
@@ -111,7 +124,11 @@ const Dashboard = () => {
          setSelectedModel = {setSelectedModel}
          setImageFile = {setImageFile}
          setImagePreview = {setImagePreview}
-         imagePreview={imagePreview}/>
+         imagePreview={imagePreview}
+         setValue = {setValue}
+         isSending={isSending}
+         />
+         
       </div>
     </div>
   );

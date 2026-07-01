@@ -82,7 +82,13 @@ export function useChat() {
         imageFile,
         (token) => typewriter.push(token),
         (chat) => {
+          // If server returned full messages, prefer server copy to avoid duplicating
+          // the optimistic draft messages we previously pushed locally.
           dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
+          if (chat.messages && Array.isArray(chat.messages) && chat.messages.length > 0) {
+            const formatted = chat.messages.map((m) => ({ content: m.content, role: m.role, model: m.model, image: m.image }));
+            dispatch(addMessage({ chatId: chat._id, messages: formatted }));
+          }
           dispatch(setCurrentChatId(chat._id));
           activeChat = chat._id;
         },

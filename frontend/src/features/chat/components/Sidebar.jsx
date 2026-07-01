@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
 import { useAuth } from "../../auth/hook/useAuth.js";
+import { useNavigate } from "react-router";
+import { setLoading } from "../chatSlice.js";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../../auth/authSlice.js";
 
 // ─── Shared animation styles injected once ───────────────────────────────────
 const ANIM_STYLE = `
@@ -14,25 +18,60 @@ const ANIM_STYLE = `
 }
 `;
 
+// ─── Custom Unique SVG Logo Component for LUMIS ─────────────────────────────
+const BrandLogoSvg = () => (
+<svg viewBox="0 0 100 100" className="w-14 h-14 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sigTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#00C896" />
+      <stop offset="100%" stopColor="#002d22" />
+    </linearGradient>
+  </defs>
+  
+  {/* <!-- Quad-Symmetrical Matrix Blades -->
+  <!-- Top Blade --> */}
+  <path d="M50,15 L62,35 L50,42 L38,35 Z" fill="url(#sigTeal)" />
+  
+  {/* <!-- Right Blade --> */}
+  <path d="M85,50 L65,62 L58,50 L65,38 Z" fill="url(#sigTeal)" opacity="0.9" />
+  
+  {/* <!-- Bottom Blade --> */}
+  <path d="M50,85 L38,65 L50,58 L62,65 Z" fill="#00C896" />
+  
+  {/* <!-- Left Blade --> */}
+  <path d="M15,50 L35,38 L42,50 L35,62 Z" fill="url(#sigTeal)" opacity="0.7" />
+
+  {/* <!-- Ultra Sharp Core Alignment Rings --> */}
+  <circle cx="50" cy="50" r="16" stroke="#00C896" strokeWidth="1.5" strokeDasharray="4 8" opacity="0.5" />
+  
+  {/* Contrast Ring preventing drop on dark or light canvas */}
+  <circle cx="50" cy="50" r="5" fill="#111827" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+  {/* Pure Premium Neon Light Source */}
+  <circle cx="50" cy="50" r="3.5" fill="#00ffc4" />
+</svg>
+
+
+);
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const ChatListItem = ({ title, active, onOpen, onDelete }) => (
   <button
     onClick={onOpen}
-    className={`group w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm text-left truncate transition-colors
+    className={`group w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm text-left transition-colors min-w-0
       ${
         active
           ? "bg-[var(--bg-hover)] text-[var(--text-primary)]"
           : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
       }`}
   >
-    <span className="truncate">{title}</span>
+    <span className="flex-1 min-w-0 truncate">{title}</span>
     <svg
       onClick={(e) => {
         e.stopPropagation();
         onDelete();
       }}
-      className="w-4 h-4 shrink-0 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity"
+      className="w-4 h-4 shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-red-400 transition-opacity"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -57,6 +96,26 @@ const SidebarToggleIcon = () => (
 // ─── Profile Modal ────────────────────────────────────────────────────────────
 const ProfileModal = ({ user, onClose }) => {
   const [username, setUsername] = useState(user?.username || "");
+
+  const dispatch = useDispatch()
+
+  const {handleUpdateProfile} = useAuth()
+
+  async function handleSave() {
+
+    setLoading(true)
+    try{
+      const response = await handleUpdateProfile(username)
+      console.log(response)
+      dispatch(setUser(response.user))
+    }catch(err){
+      console.log(err)
+    }finally{
+      setLoading(false)
+      onClose()
+    }
+
+}
 
   return (
     <div
@@ -144,6 +203,7 @@ const ProfileModal = ({ user, onClose }) => {
 
         {/* Save button */}
         <button
+          onClick={handleSave}
           style={{
             width: "100%", padding: "11px", borderRadius: 10,
             background: "linear-gradient(135deg, #00C896, #00a07a)",
@@ -152,7 +212,6 @@ const ProfileModal = ({ user, onClose }) => {
           }}
           onMouseEnter={(e) => e.target.style.opacity = "0.85"}
           onMouseLeave={(e) => e.target.style.opacity = "1"}
-          onClick={onClose}
         >
           Save Changes
         </button>
@@ -381,12 +440,12 @@ const Sidebar = ({
   const initial = (user?.username || "U").trim().charAt(0).toUpperCase();
   const { handleNewChat } = useChat();
   const {handleLogout} = useAuth()
+  const navigate = useNavigate();
 
   const [showMenu, setShowMenu]       = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showHelp, setShowHelp]       = useState(false);
 
-  // ── Logout handler — plug your API call in here ──
   const handleLogoutBtn = async () => {
     try {
       if(user){
@@ -412,14 +471,11 @@ const Sidebar = ({
         `}
       >
         {/* ── Header ── */}
-        <div className="flex items-center h-16 px-3 shrink-0">
+        <div className="flex items-center h-16 px-3 shrink-0 justify-between">
           {open ? (
             <>
-              <div className="flex items-center gap-2 flex-1 overflow-hidden">
-                <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center font-bold text-black shrink-0">
-                  P
-                </div>
-                <span className="font-semibold text-[15px] truncate">PandaAI</span>
+              <div className="flex items-center flex-1 overflow-hidden">
+                <BrandLogoSvg />
               </div>
               <button
                 onClick={() => setOpen((v) => !v)}
@@ -483,9 +539,9 @@ const Sidebar = ({
         {!open && <div className="flex-1" />}
 
         {/* ── Account footer ── */}
-        <div className="border-t border-[var(--border)] p-2 shrink-0" style={{ position: "relative" }}>
-          {/* Account popup — only renders when menu is open */}
-          {showMenu && open && (
+        {user ? (
+          <div className="border-t border-[var(--border)] p-2 shrink-0" style={{ position: "relative" }}>
+          {showMenu && open && user && (
             <AccountMenu
               user={user}
               onClose={() => setShowMenu(false)}
@@ -510,7 +566,6 @@ const Sidebar = ({
             {open && (
               <>
                 <span className="flex-1 text-left text-sm font-medium truncate">{user?.username}</span>
-                {/* Chevron rotates when menu is open */}
                 <svg
                   className="w-4 h-4 text-[var(--text-secondary)] shrink-0 transition-transform duration-200"
                   style={{ transform: showMenu ? "rotate(180deg)" : "rotate(0deg)" }}
@@ -522,9 +577,33 @@ const Sidebar = ({
             )}
           </button>
         </div>
+    ) : (
+  <div className="border-t border-[var(--border)] p-2 shrink-0">
+    {open ? (
+      <button
+        type="button"
+        onClick={() => navigate('/login')}
+        className="w-full m-auto flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)] text-black text-sm font-semibold hover:bg-[var(--accent-hover)] active:scale-[0.98] transition-all"
+      >
+        Login
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={() => navigate('/login')}
+        className="w-full flex items-center justify-center py-1.5 rounded-xl hover:bg-[var(--bg-hover)] text-[var(--accent)] transition-colors"
+        aria-label="Sign in"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
+        </svg>
+      </button>
+    )}
+  </div>
+)}
       </aside>
 
-      {/* ── Modals (rendered outside aside so they overlay everything) ── */}
+      {/* ── Modals ── */}
       {showProfile && <ProfileModal user={user} onClose={() => setShowProfile(false)} />}
       {showHelp    && <HelpModal onClose={() => setShowHelp(false)} />}
     </>

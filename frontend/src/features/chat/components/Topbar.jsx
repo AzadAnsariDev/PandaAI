@@ -1,18 +1,24 @@
 import React, { useState } from "react";
+import FreePlanBadge from "./FreePlanBadge";
+import PlansModal from "./PlansModal";
 
 const focusOptions = ["Auto", "Web", "Academic", "Writing"];
 
 const Topbar = ({ isDark, setIsDark, onMenuClick }) => {
   const [focusOpen, setFocusOpen] = useState(false);
   const [focus, setFocus] = useState(focusOptions[0]);
+  
+  const [showPlans, setShowPlans] = useState(false);
 
   return (
-    <header className="h-16 px-4 md:px-6 flex items-center justify-between bg-[var(--bg-primary)] shrink-0">
-      <div className="flex items-center gap-3">
+    <header className="h-16 px-4 md:px-6 flex items-center justify-between bg-[var(--bg-primary)] border-b border-[var(--border)]/40 shrink-0 relative">
+      
+      {/* 1. LEFT CONTAINER: Sidebar toggle & Logo */}
+      <div className="flex items-center gap-3  justify-start min-w-0">
         {/* Mobile sidebar toggle */}
         <button
           onClick={onMenuClick}
-          className="md:hidden p-1.5 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-secondary)]"
+          className="md:hidden p-1.5 rounded-md hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] shrink-0"
           aria-label="Open sidebar"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,73 +26,50 @@ const Topbar = ({ isDark, setIsDark, onMenuClick }) => {
           </svg>
         </button>
 
-        {/* Model / focus selector - UI only for now, wire selection to your model logic */}
-        <div className="relative">
-          <button
-            onClick={() => setFocusOpen((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-sm font-medium hover:bg-[var(--bg-hover)] transition-colors"
-          >
-            {focus}
-            <svg
-              className="w-3.5 h-3.5 text-[var(--text-secondary)]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {focusOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setFocusOpen(false)} />
-              <div className="absolute top-full mt-2 left-0 w-40 rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-xl overflow-hidden z-50">
-                {focusOptions.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      setFocus(opt);
-                      setFocusOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-[var(--bg-hover)] ${
-                      opt === focus ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+        {/* LUMIS Text Header */}
+        <div className="flex items-center select-none truncate">
+          <span className="text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-[#475569] via-[#00C896] to-[#004a37] dark:from-[#bab7b7] dark:via-[#00C896] dark:to-[#004a37] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(0,200,150,0.2)]">
+            LUMIS
+          </span>
         </div>
       </div>
 
-      {/* Theme toggle */}
-      <button
-        onClick={() => setIsDark((v) => !v)}
-        className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
-        aria-label="Toggle theme"
-      >
-        {isDark ? (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.36 6.36l-.7-.7M6.34 6.34l-.7-.7m12.02 0l-.7.7M6.34 17.66l-.7.7M12 7a5 5 0 100 10 5 5 0 000-10z"
-            />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            />
-          </svg>
-        )}
-      </button>
+      {/* 2. CENTER CONTAINER: Perfectly centered Badge layer */}
+      <div className="flex items-center justify-center shrink-0">
+        <FreePlanBadge onClick={() => setShowPlans(true)} />
+        {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
+      </div>
+
+      {/* 3. RIGHT CONTAINER: Action Utilities */}
+      <div className="flex items-center gap-2  justify-end">
+        {/* Theme toggle */}
+        <button
+          onClick={() => setIsDark((v) => !v)}
+          className="p-2 rounded-full hover:bg-[var(--bg-hover)] text-[var(--text-secondary)] transition-colors"
+          aria-label="Toggle theme"
+        >
+          {isDark ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.36 6.36l-.7-.7M6.34 6.34l-.7-.7m12.02 0l-.7.7M6.34 17.66l-.7.7M12 7a5 5 0 100 10 5 5 0 000-10z"
+              />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              />
+            </svg>
+          )}
+        </button>
+      </div>
+
     </header>
   );
 };

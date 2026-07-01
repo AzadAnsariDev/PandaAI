@@ -12,7 +12,7 @@ const icons = {
     </svg>
   ),
   success: (
-    <svg className="w-4.5 h-4.5 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-4.5 h-4.5 text-[var(--accent)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -25,7 +25,7 @@ const icons = {
 
 const borderColors = {
   error: "border-red-500/40",
-  success: "border-green-500/40",
+  success: "border-[var(--accent)]",
 };
 
 // Auto-dismissing toast for auth feedback. Slides down from the top,
