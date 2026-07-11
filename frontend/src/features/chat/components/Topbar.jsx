@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import FreePlanBadge from "./FreePlanBadge";
 import PlansModal from "./PlansModal";
+import { useNavigate } from "react-router";
+import CompareButton from "../../compare/components/compareButton";
+
 
 const focusOptions = ["Auto", "Web", "Academic", "Writing"];
 
@@ -9,6 +12,8 @@ const Topbar = ({ isDark, setIsDark, onMenuClick }) => {
   const [focus, setFocus] = useState(focusOptions[0]);
   
   const [showPlans, setShowPlans] = useState(false);
+
+  const navigate = useNavigate()
 
   return (
     <header className="h-16 px-4 md:px-6 flex items-center justify-between bg-[var(--bg-primary)] border-b border-[var(--border)]/40 shrink-0 relative">
@@ -39,6 +44,8 @@ const Topbar = ({ isDark, setIsDark, onMenuClick }) => {
         <FreePlanBadge onClick={() => setShowPlans(true)} />
         {showPlans && <PlansModal onClose={() => setShowPlans(false)} />}
       </div>
+
+       <CompareButton  onClick={() => navigate("/compare")} />
 
       {/* 3. RIGHT CONTAINER: Action Utilities */}
       <div className="flex items-center gap-2  justify-end">

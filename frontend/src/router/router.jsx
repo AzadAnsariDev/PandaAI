@@ -3,6 +3,7 @@ import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import App from "../app/App";
 import EmailVerified from "../features/auth/pages/EmailVerified";
+import CompareChat from "../features/compare/page/CompareChat";
 
 export const router = createBrowserRouter([
     {
@@ -25,4 +26,8 @@ export const router = createBrowserRouter([
         path:'/emailVerified',
         element : <EmailVerified/ >
     },
+    {
+        path : '/compare',
+        element : <CompareChat/>
+    }
 ])

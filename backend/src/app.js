@@ -3,6 +3,7 @@ import authRouter from './routes/auth.route.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors'
 import chatRouter from './routes/chat.route.js';
+import compareRouter from './routes/compare.route.js';
 
 
 const app = express();
@@ -21,5 +22,6 @@ Path: /api/auth/register
 */
 app.use("/api/auth", authRouter)
 app.use("/api/chats", chatRouter)
+app.use("/api/compare", compareRouter)
 
 export default app;

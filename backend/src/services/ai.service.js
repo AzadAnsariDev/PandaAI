@@ -189,3 +189,57 @@ Rules for tool use:
   }
   return fullAnswer;
 }
+
+export async function streamCompareResponse(messages, onToken) {
+  // modelMap ki saari keys le lo: gemini, llama, mistral
+  const modelKeys = Object.keys(modelMap);
+
+  const langchainMessages = Array.isArray(messages)
+    ? messages
+        .filter(m => m.content && typeof m.content === "string" && m.content.trim() !== "")
+        .map(m =>
+          m.role === "user"
+            ? new HumanMessage(m.content)
+            : new AIMessage(m.content)
+        )
+    : [new HumanMessage(messages)];
+
+  // Har model ke liye alag agent banao aur parallel stream karo
+  const streamPromises = modelKeys.map(async (modelKey) => {
+    try {
+      const agent = createAgent({
+        model: modelMap[modelKey],
+        tools: [webSearchTool, emailTool],
+        systemPrompt: `You are a helpful research assistant.
+
+Rules for tool use:
+- You may call webSearchTool AT MOST ONCE per user question.
+- After you get search results back, you MUST immediately write a final text answer using those results.
+- Only call emailTool if the user explicitly asks you to send an email.
+- Never call the same tool twice in a row.`,
+      });
+
+      const events = agent.streamEvents(
+        { messages: langchainMessages },
+        { version: "v2" }
+      );
+
+      for await (const event of events) {
+        if (event.event === "on_chat_model_stream") {
+          const content = event.data?.chunk?.content;
+          if (content) {
+            onToken(modelKey, content); // 👈 model tag ke saath token bhejo
+          }
+        }
+      }
+
+      onToken(modelKey, null, "done"); // is model ka stream khatam
+    } catch (err) {
+      console.error(`Error in ${modelKey}:`, err.message);
+      onToken(modelKey, null, "error", err.message);
+    }
+  });
+
+  // allSettled — koi ek model fail ho to baaki chalte rahein
+  return await Promise.allSettled(streamPromises);
+}
